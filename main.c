@@ -1,9 +1,9 @@
 #include "fdefs.h"
 
-
 /// @brief A helper function for outputting the welcome text.
-/// @param 
-void welcomeText(void) {
+/// @param
+void welcomeText(void)
+{
     _setbkcolor(1);
     _settextcolor(7);
     _clearscreen(_GCLEARSCREEN);
@@ -13,16 +13,18 @@ void welcomeText(void) {
     _settextposition(2, 1);
 }
 
-
-
 int main(void)
 {
     int ch;
+    // initialize the buffer
+    char_buffer cb = {0};
 
     welcomeText();
+    renderer(&cb);
     // main loop
     while (1)
     {
+
         struct rccoord currentPos = _gettextposition();
         if (kbhit())
         {
@@ -37,62 +39,54 @@ int main(void)
                 case KEY_F1:
                 {
                     /* TODO: Help section*/
+                    break;
                 }
                 case KEY_DOWN:
                 {
+                    /* TODO: make this work */
                     _settextposition(currentPos.row + 1, 1);
                     break;
                 }
                 case KEY_LEFT:
                 {
-                    _settextposition(currentPos.row, currentPos.col - 1);
+                    cb_cur_left(&cb);
                     break;
                 }
                 case KEY_RIGHT:
                 {
-                    _settextposition(currentPos.row, currentPos.col + 1);
+                    cb_cur_right(&cb);
                     break;
                 }
                 case KEY_UP:
                 {
+                    /* TODO: make this work */
                     _settextposition(currentPos.row - 1, 1);
                     break;
                 }
                 }
             }
-            else if (ch == '\r')
+            else if (ch == ENTER)
             {
-                _settextposition(currentPos.row + 1, 1);
+                cb_insert_char(&cb, '\n');
             }
-            /* TODO: Add a fdef.h definition for this. */
-            else if (ch == '\b')
+            else if (ch == BACKSPACE)
             {
-                // this is fucking voodoo i swear to god 
-                 
-                /* TODO: Make backspace actually move UP a line */
-                currentPos.col--;
-                _settextposition(currentPos.row, currentPos.col);
-                _outtext(" ");
-                _settextposition(currentPos.row, currentPos.col);
+                cb_back(&cb);
+            }
+            else if (ch == ESCAPE)
+            {
+                _setbkcolor(0);
+                _settextcolor(7);
+                _clearscreen(_GCLEARSCREEN);
+                printf("Goodbye!\n");
+                break;
             }
             else
             {
-                char str[2];
-                // ESC key
-                if (ch == 27)
-                {
-                    _setbkcolor(0);
-                    _settextcolor(7);
-                    _clearscreen(_GCLEARSCREEN);
-                    printf("Goodbye!\n");
-                    break;
-                }
-                str[0] = (char)ch;
-                str[1] = '\0';
-                _outtext(str);
+                cb_insert_char(&cb, (char)ch);
             }
         }
     }
-
+    free(cb.buf_);
     return 0;
 }
